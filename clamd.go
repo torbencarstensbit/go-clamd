@@ -278,7 +278,7 @@ func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, erro
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("[ScanStream(%d)] newConnection: %s\n", id, s.Sub(time.Now()))
+	fmt.Printf("[ScanStream(%d)] newConnection: %s\n", id, time.Now().Sub(s))
 	s = time.Now()
 
 	go func() {
@@ -295,13 +295,13 @@ func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, erro
 		}
 	}()
 
-	fmt.Printf("[ScanStream(%d)] preSendCommand(INSTREAM): %s\n", id, s.Sub(time.Now()))
+	fmt.Printf("[ScanStream(%d)] preSendCommand(INSTREAM): %s\n", id, time.Now().Sub(s))
 	s = time.Now()
 	err = conn.sendCommand("INSTREAM")
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("[ScanStream(%d)] postSendCommand(INSTREAM): %s\n", id, s.Sub(time.Now()))
+	fmt.Printf("[ScanStream(%d)] postSendCommand(INSTREAM): %s\n", id, time.Now().Sub(s))
 	s = time.Now()
 
 	for {
@@ -320,7 +320,7 @@ func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, erro
 			break
 		}
 	}
-	fmt.Printf("[ScanStream(%d)] postFileSend(INSTREAM): %s\n", id, s.Sub(time.Now()))
+	fmt.Printf("[ScanStream(%d)] postFileSend(INSTREAM): %s\n", id, time.Now().Sub(s))
 	s = time.Now()
 
 	err = conn.sendEOF()
@@ -328,10 +328,10 @@ func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, erro
 		return nil, err
 	}
 
-	fmt.Printf("[ScanStream(%d)] preReadResponse(INSTREAM): %s\n", id, s.Sub(time.Now()))
+	fmt.Printf("[ScanStream(%d)] preReadResponse(INSTREAM): %s\n", id, time.Now().Sub(s))
 	s = time.Now()
 	ch, wg, err := conn.readResponse()
-	fmt.Printf("[ScanStream(%d)] postReadResponse(INSTREAM): %s\n", id, s.Sub(time.Now()))
+	fmt.Printf("[ScanStream(%d)] postReadResponse(INSTREAM): %s\n", id, time.Now().Sub(s))
 	s = time.Now()
 
 	go func() {
@@ -343,7 +343,7 @@ func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, erro
 		}
 	}()
 
-	fmt.Printf("[ScanStream(%d)] complete: %s\n", sO.Sub(time.Now()))
+	fmt.Printf("[ScanStream(%d)] complete: %s\n", time.Now().Sub(s0))
 	return ch, nil
 }
 

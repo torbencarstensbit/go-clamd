@@ -269,7 +269,7 @@ the actual chunk. Streaming is terminated by sending a zero-length chunk. Note:
 do not exceed StreamMaxLength as defined in clamd.conf, otherwise clamd will
 reply with INSTREAM size limit exceeded and close the connection
 */
-func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (*ScanResult, error) {
+func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, error) {
 	conn, err := c.newConnection()
 	if err != nil {
 		return nil, err
@@ -327,7 +327,7 @@ func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (*ScanResult, error) {
 		}
 	}()
 
-	return <-ch, nil
+	return ch, nil
 }
 
 func NewClamd(address string) *Clamd {

@@ -111,14 +111,19 @@ func (c *Clamd) simpleCommand(command string) (chan *ScanResult, error) {
 		}
 
 		postConnectionClose := time.Now()
-		fmt.Printf("\tpreSend -> postConnectionClose: %s\n", postConnectionClose.Sub(preSendCommand))
+		if command != "VERSION" {
+			fmt.Printf("\tpreSend -> postConnectionClose: %s\n", postConnectionClose.Sub(preSendCommand))
+		}
 	}()
 
-	s := fmt.Sprintf("=====[%s]:\n\tpreSend -> postRead: %f\n", command, postReadResponse.Sub(preSendCommand).Seconds())
-	s += fmt.Sprintf("\tpostSend -> preSend: %f\n", postSendCommand.Sub(preSendCommand).Seconds())
-	s += fmt.Sprintf("\tpostRead -> preRead: %f", postReadResponse.Sub(preReadResponse).Seconds())
+	if command != "VERSION" {
+		s := fmt.Sprintf("=====[%s]:\n\tpreSend -> postRead: %f\n", command, postReadResponse.Sub(preSendCommand).Seconds())
+		s += fmt.Sprintf("\tpostSend -> preSend: %f\n", postSendCommand.Sub(preSendCommand).Seconds())
+		s += fmt.Sprintf("\tpostRead -> preRead: %f", postReadResponse.Sub(preReadResponse).Seconds())
 
-	fmt.Println(s)
+		fmt.Println(s)
+	}
+
 	return ch, err
 }
 
@@ -343,7 +348,7 @@ func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, erro
 		}
 	}()
 
-	fmt.Printf("[ScanStream(%d)] complete: %s\n", time.Now().Sub(sO))
+	fmt.Printf("[ScanStream(%d)] complete: %s\n", id, time.Now().Sub(sO))
 	return ch, nil
 }
 

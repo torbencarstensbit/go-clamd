@@ -340,12 +340,16 @@ func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, erro
 	s = time.Now()
 
 	go func() {
+		s = time.Now()
 		wg.Wait()
+		fmt.Printf("[ScanStream(%d)] postWaitGroupWait(INSTREAM): %s\n", id, time.Now().Sub(s))
+		s = time.Now()
 		err := conn.Close()
 		if err != nil {
 			//goland:noinspection GoUnhandledErrorResult
 			fmt.Fprintf(os.Stderr, "failed to close connection in ScanStream: %s", err)
 		}
+		fmt.Printf("[ScanStream(%d)] postConnClose(INSTREAM): %s\n", id, time.Now().Sub(s))
 	}()
 
 	fmt.Printf("[ScanStream(%d)] complete: %s\n", id, time.Now().Sub(sO))

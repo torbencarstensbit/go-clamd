@@ -104,7 +104,9 @@ func (conn *CLAMDConn) readResponse() (chan *ScanResult, *sync.WaitGroup, error)
 		}()
 
 		for {
+			s := time.Now()
 			line, err := reader.ReadString('\n')
+			fmt.Printf("[CLAMDConn#readResponse] postReadString(\\n): %fs\n", time.Now().Sub(s).Seconds())
 			if err == io.EOF {
 				return
 			}
@@ -122,6 +124,8 @@ func (conn *CLAMDConn) readResponse() (chan *ScanResult, *sync.WaitGroup, error)
 }
 
 func parseResult(line string) *ScanResult {
+	s := time.Now()
+
 	res := &ScanResult{}
 	res.Raw = line
 
@@ -160,6 +164,7 @@ func parseResult(line string) *ScanResult {
 		}
 	}
 
+	fmt.Printf("[conn.go#parseResult] postParseResult(\\n): %fs\n", time.Now().Sub(s).Seconds())
 	return res
 }
 

@@ -29,6 +29,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/url"
 	"os"
 	"strings"
@@ -270,12 +271,14 @@ do not exceed StreamMaxLength as defined in clamd.conf, otherwise clamd will
 reply with INSTREAM size limit exceeded and close the connection
 */
 func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, error) {
+	id := rand.Intn(1000000)
 	s := time.Now()
+	sO := time.Now()
 	conn, err := c.newConnection()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("[ScanStream] newConnection: %s\n", s.Sub(time.Now()))
+	fmt.Printf("[ScanStream(%d)] newConnection: %s\n", id, s.Sub(time.Now()))
 	s = time.Now()
 
 	go func() {
@@ -292,13 +295,13 @@ func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, erro
 		}
 	}()
 
-	fmt.Printf("[ScanStream] preSendCommand(INSTREAM): %s\n", s.Sub(time.Now()))
+	fmt.Printf("[ScanStream(%d)] preSendCommand(INSTREAM): %s\n", id, s.Sub(time.Now()))
 	s = time.Now()
 	err = conn.sendCommand("INSTREAM")
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("[ScanStream] postSendCommand(INSTREAM): %s\n", s.Sub(time.Now()))
+	fmt.Printf("[ScanStream(%d)] postSendCommand(INSTREAM): %s\n", id, s.Sub(time.Now()))
 	s = time.Now()
 
 	for {
@@ -317,7 +320,7 @@ func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, erro
 			break
 		}
 	}
-	fmt.Printf("[ScanStream] postFileSend(INSTREAM): %s\n", s.Sub(time.Now()))
+	fmt.Printf("[ScanStream(%d)] postFileSend(INSTREAM): %s\n", id, s.Sub(time.Now()))
 	s = time.Now()
 
 	err = conn.sendEOF()
@@ -325,10 +328,10 @@ func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, erro
 		return nil, err
 	}
 
-	fmt.Printf("[ScanStream] preReadResponse(INSTREAM): %s\n", s.Sub(time.Now()))
+	fmt.Printf("[ScanStream(%d)] preReadResponse(INSTREAM): %s\n", id, s.Sub(time.Now()))
 	s = time.Now()
 	ch, wg, err := conn.readResponse()
-	fmt.Printf("[ScanStream] postReadResponse(INSTREAM): %s\n", s.Sub(time.Now()))
+	fmt.Printf("[ScanStream(%d)] postReadResponse(INSTREAM): %s\n", id, s.Sub(time.Now()))
 	s = time.Now()
 
 	go func() {
@@ -340,6 +343,7 @@ func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, erro
 		}
 	}()
 
+	fmt.Printf("[ScanStream(%d)] complete: %s\n", sO.Sub(time.Now()))
 	return ch, nil
 }
 

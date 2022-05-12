@@ -110,12 +110,12 @@ func (c *Clamd) simpleCommand(command string) (chan *ScanResult, error) {
 		}
 
 		postConnectionClose := time.Now()
-		fmt.Printf("preSend -> postConnectionClose: %s\n", postConnectionClose.Sub(preSendCommand))
+		fmt.Printf("\tpreSend -> postConnectionClose: %s\n", postConnectionClose.Sub(preSendCommand))
 	}()
 
-	s := fmt.Sprintf("preSend -> postRead: %f\n", postReadResponse.Sub(preSendCommand).Seconds())
-	s += fmt.Sprintf("postSend -> preSend: %f\n", postSendCommand.Sub(preSendCommand).Seconds())
-	s += fmt.Sprintf("postRead -> preRead: %f\n", postReadResponse.Sub(preReadResponse).Seconds())
+	s := fmt.Sprintf("=====[%s]:\n\tpreSend -> postRead: %f\n", command, postReadResponse.Sub(preSendCommand).Seconds())
+	s += fmt.Sprintf("\tpostSend -> preSend: %f\n", postSendCommand.Sub(preSendCommand).Seconds())
+	s += fmt.Sprintf("\tpostRead -> preRead: %f", postReadResponse.Sub(preReadResponse).Seconds())
 
 	fmt.Println(s)
 	return ch, err
@@ -270,10 +270,13 @@ do not exceed StreamMaxLength as defined in clamd.conf, otherwise clamd will
 reply with INSTREAM size limit exceeded and close the connection
 */
 func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, error) {
+	s := time.Now()
 	conn, err := c.newConnection()
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("[ScanStream] newConnection: %s\n", s.Sub(time.Now()))
+	s = time.Now()
 
 	go func() {
 		for {
@@ -289,10 +292,14 @@ func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, erro
 		}
 	}()
 
+	fmt.Printf("[ScanStream] preSendCommand(INSTREAM): %s\n", s.Sub(time.Now()))
+	s = time.Now()
 	err = conn.sendCommand("INSTREAM")
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("[ScanStream] postSendCommand(INSTREAM): %s\n", s.Sub(time.Now()))
+	s = time.Now()
 
 	for {
 		buf := make([]byte, CHUNK_SIZE)
@@ -310,13 +317,19 @@ func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, erro
 			break
 		}
 	}
+	fmt.Printf("[ScanStream] postFileSend(INSTREAM): %s\n", s.Sub(time.Now()))
+	s = time.Now()
 
 	err = conn.sendEOF()
 	if err != nil {
 		return nil, err
 	}
 
+	fmt.Printf("[ScanStream] preReadResponse(INSTREAM): %s\n", s.Sub(time.Now()))
+	s = time.Now()
 	ch, wg, err := conn.readResponse()
+	fmt.Printf("[ScanStream] postReadResponse(INSTREAM): %s\n", s.Sub(time.Now()))
+	s = time.Now()
 
 	go func() {
 		wg.Wait()

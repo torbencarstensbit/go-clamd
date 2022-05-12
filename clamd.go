@@ -343,7 +343,7 @@ func (c *Clamd) ScanStream(r io.Reader, abort chan bool) (chan *ScanResult, erro
 		}
 	}()
 
-	fmt.Printf("[ScanStream(%d)] complete: %s\n", time.Now().Sub(s0))
+	fmt.Printf("[ScanStream(%d)] complete: %s\n", time.Now().Sub(sO))
 	return ch, nil
 }
 
